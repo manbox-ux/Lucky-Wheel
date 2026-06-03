@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "WheelConfig": {
+      "title": "WheelConfig",
+      "description": "Synced configuration and items list of the draw wheel",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Channel ID, default is 'default'" },
+        "inputText": { "type": "string", "description": "Comma-separated list of items" },
+        "themeSelection": { "type": "string", "description": "Theme style selected" },
+        "removeAfterDraw": { "type": "boolean", "description": "Remove participant from list if drawn" },
+        "activeWinnerId": { "type": "string", "description": "ID of current winner to trigger modal" },
+        "activeWinnerName": { "type": "string", "description": "Name of current winner to display" },
+        "spinTriggerTime": { "type": "number", "description": "Time when spin was initiated to sync other boards" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" }
+      },
+      "required": ["id", "inputText", "themeSelection", "removeAfterDraw", "updatedAt"]
+    },
+    "DrawResult": {
+      "title": "DrawResult",
+      "description": "Chronological item representing a drawn winner result",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "winnerName": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "removedFromList": { "type": "boolean" }
+      },
+      "required": ["id", "winnerName", "timestamp", "removedFromList"]
+    }
+  },
+  "firestore": {
+    "/wheel_configs/{configId}": {
+      "schema": "WheelConfig",
+      "description": "Global settings and content state for drawing"
+    },
+    "/draw_results/{resultId}": {
+      "schema": "DrawResult",
+      "description": "Collection of all drawing history"
+    }
+  }
+}

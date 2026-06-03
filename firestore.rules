@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net (First Rule Block)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper Functions
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Entity validation schema
+    function isValidWheelConfig(data) {
+      return data.keys().hasAll(['id', 'inputText', 'themeSelection', 'removeAfterDraw', 'updatedAt'])
+        && data.keys().size() <= 8
+        && data.id is string && data.id.size() <= 128
+        && data.inputText is string && data.inputText.size() <= 30000
+        && data.themeSelection is string && (data.themeSelection == 'vibrant' || data.themeSelection == 'pastel' || data.themeSelection == 'neon' || data.themeSelection == 'sunset' || data.themeSelection == 'cool')
+        && data.removeAfterDraw is bool
+        && (data.activeWinnerId == null || (data.activeWinnerId is string && data.activeWinnerId.size() <= 100))
+        && (data.activeWinnerName == null || (data.activeWinnerName is string && data.activeWinnerName.size() <= 200))
+        && (data.spinTriggerTime == null || data.spinTriggerTime is int || data.spinTriggerTime is float)
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidDrawResult(data) {
+      return data.keys().hasAll(['id', 'winnerName', 'timestamp', 'removedFromList'])
+        && data.keys().size() == 4
+        && data.id is string && data.id.size() <= 128
+        && data.winnerName is string && data.winnerName.size() <= 256
+        && data.timestamp is timestamp
+        && data.removedFromList is bool;
+    }
+
+    // Collection matches
+    match /wheel_configs/{configId} {
+      allow get: if true;
+      allow create: if isValidId(configId) && isValidWheelConfig(incoming()) && incoming().updatedAt == request.time;
+      allow update: if isValidId(configId) && isValidWheelConfig(incoming()) && incoming().updatedAt == request.time;
+      allow delete: if false;
+    }
+
+    match /draw_results/{resultId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isValidId(resultId) && isValidDrawResult(incoming()) && incoming().timestamp == request.time;
+      allow update: if false; // Immutable histories
+      allow delete: if true; // To support clearing log histories
+    }
+  }
+}

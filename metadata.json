@@ -1,0 +1,6 @@
+{
+  "name": "動態抽籤大轉盤",
+  "description": "具備流暢物理動畫、自定義名單和彩帶慶祝特效的精美抽籤大轉盤。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
